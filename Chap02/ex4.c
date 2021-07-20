@@ -55,7 +55,7 @@ int main() {
     return 0;
 }
 
-// 根据输入的堆栈容量M，创建一个堆栈
+// 创建一个容量为M的堆栈
 Stack CreatStack(int M) {
     Stack s = (Stack)malloc(sizeof(struct StackNode));
     s->last = -1;
@@ -77,7 +77,7 @@ int PushStack(Stack s, int x) {
     return 0;
 }
 
-// 出栈并幅值给*x，返回0表示成功，返回-1表示失败
+// 出栈并赋值给*x，返回0表示成功，返回-1表示失败
 int PopStack(Stack s, int *x) {
     if (s->last == -1) return -1;
     *x = s->elements[s->last--];
