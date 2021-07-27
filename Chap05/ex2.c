@@ -17,16 +17,17 @@ int main() {
     char c;
     int *set;
 
-    scanf("%d\n", &N);
+    scanf("%d", &N);
     set = (int *)malloc(sizeof(int) * N);
     for (int i = 0; i < N; i++) set[i] = -1;
     while (1) {
-        scanf("%c", &c);
+        scanf("\n%c", &c);
         if (c == 'S') break;
-        scanf(" %d %d\n", &n1, &n2);
+        scanf(" %d %d", &n1, &n2);
         p1 = GetRoot(set, n1 - 1);
         p2 = GetRoot(set, n2 - 1);
-        if (c == 'I') {
+        // 检查两个节点是否已经联通，不联通则将集合相并
+        if (c == 'I' && p1 != p2) {
             // 确保p1的值是较小的，也就是层数高的
             if (set[p1] > set[p2]) {
                 int temp = p1;
