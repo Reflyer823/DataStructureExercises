@@ -76,10 +76,10 @@ void FreeGraph(LGraph G) {
 // 创建一个邻接表的新节点
 AdjaList MakeAdjaListNode(Vertex V, int len, int price, AdjaList next) {
     AdjaList new = (AdjaList)malloc(sizeof(struct AdjaListStruct));
-    new->V      = V;
-    new->len    = len;
-    new ->price = price;
-    new->next   = next;
+    new->V     = V;
+    new->len   = len;
+    new->price = price;
+    new->next  = next;
     return new;
 }
 
@@ -120,8 +120,8 @@ void Dijkstra(LGraph G, Vertex S, Vertex D) {
             if (!collected[i] && (V == -1 || dist[i] < dist[V]))
                 V = i;
         }
-        // 未找到则退出
-        if (V == -1) break;
+        // 未找到或找到的是目标节点时则退出
+        if (V == -1 || V == D) break;
         // 将V收录进来
         collected[V] = 1;
         // 检查V的每个邻接点的距离值是否需要更新
