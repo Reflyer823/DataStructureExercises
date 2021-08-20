@@ -11,6 +11,9 @@ void Insertion_Sort(ElementType A[], int N);
 void Shell_Sort(ElementType A[], int N);
 void Selection_Sort(ElementType A[], int N);
 void Heap_Sort(ElementType A[], int N);
+void Merge_Sort1(ElementType A[], int N);
+void Merge_Sort2(ElementType A[], int N);
+void Quick_Sort(ElementType A[], int N);
 
 // 主函数
 int main() {
@@ -28,7 +31,10 @@ int main() {
     // Insertion_Sort(A, N);
     // Shell_Sort(A, N);
     // Selection_Sort(A, N);
-    Heap_Sort(A, N);
+    // Heap_Sort(A, N);
+    // Merge_Sort1(A, N);
+    // Merge_Sort2(A, N);
+    Quick_Sort(A, N);
 
     // 输出结果
     printf("%d", A[0]);
@@ -112,7 +118,7 @@ void Selection_Sort(ElementType A[], int N) {
     }
 }
 
-// 对输入堆的根节点r进行下滤操作
+// 对输入堆的根节点R进行下滤操作
 void Heap_Perc_Down(ElementType A[], int N, int R) {
     // 保存根节点的值
     int X = A[R], Parent, Child;
@@ -146,4 +152,97 @@ void Heap_Sort(ElementType A[], int N) {
         // 对规模减一的堆进行根节点的调整
         Heap_Perc_Down(A, P - 1, 0);
     }
+}
+
+// 对A中两个有序子列进行归并，输出到T中
+void Merge(ElementType A[], ElementType T[], int start1, int start2, int end2) {
+    int p1 = start1, p2 = start2, p = start1;
+    // 每次选择两部分中较小的元素
+    while (p1 < start2 && p2 <= end2) {
+        if (A[p1] <= A[p2]) T[p++] = A[p1++];
+        else T[p++] = A[p2++];
+    }
+    // 剩余部分全部进行拷贝
+    while (p1 < start2) T[p++] = A[p1++];
+    while (p2 <= end2) T[p++] = A[p2++];
+} 
+
+// 归并排序的递归函数
+void MSort(ElementType A[], ElementType T[], int start, int end) {
+    if (start >= end) return;
+    int middle = (start + end) / 2;
+    // 分别将左右半边排好序
+    MSort(A, T, start, middle);
+    MSort(A, T, middle + 1, end);
+    // 对左右两个有序子列进行归并
+    Merge(A, T, start, middle + 1, end);
+    // 将归并后的数据从T中拷贝回A中
+    for (int i = start; i <= end; i++)
+        A[i] = T[i];
+}
+
+// 归并排序——递归实现
+void Merge_Sort1(ElementType A[], int N) {
+    ElementType *T = (ElementType *)malloc(sizeof(ElementType) * N);
+    MSort(A, T, 0, N - 1);
+    free(T);
+}
+
+// 对S中数据进行一轮Size大小的归并，输出到D中
+void MSortRound(ElementType S[], ElementType D[], int N, int Size) {
+    int I;
+    // 每两个完整组进行一次归并
+    for (I = 0; I + Size * 2 <= N; I += Size * 2)
+        Merge(S, D, I, I + Size, I + Size * 2 - 1);
+    // 当剩余两个组时，再归并一次；只剩一个组时，直接拷贝即可
+    if (I + Size < N) Merge(S, D, I, I + Size, N - 1);
+    else for (int i = I; i < N; i++) D[i] = S[i];
+}
+
+// 归并排序——非递归实现
+void Merge_Sort2(ElementType A[], int N) {
+    ElementType *T = (ElementType *)malloc(sizeof(ElementType) * N);
+    // Size从1到大于等于N，每次循环做两轮，确保最后数据回到了A中
+    for (int Size = 1; Size < N; Size *= 2) {
+        MSortRound(A, T, N, Size);  // 从A归并到T
+        Size *= 2;
+        MSortRound(T, A, N, Size);  // 从T归并到A
+    }
+    free(T);
+}
+
+#define SWAP(X, Y) temp = (X); (X) = (Y); (Y) = temp
+
+// 快速排序递归函数
+void QSort(ElementType A[], int start, int end) {
+    const int CUT_OFF = 300;
+    // 当输入数据个数少于CUT_OFF时，直接采用插入排序
+    if (end - start < CUT_OFF) {
+        Insertion_Sort(A + start, end - start + 1);
+        return;
+    }
+    // 选取主元
+    int temp, middle = (start + end) / 2;
+    if (A[start]  > A[middle]) {SWAP(A[start] , A[middle]);}
+    if (A[middle] > A[end])    {SWAP(A[middle], A[end]   );}
+    if (A[start]  > A[middle]) {SWAP(A[start] , A[middle]);}
+    SWAP(A[middle], A[end - 1]);    // 将主元换到最右边来
+    // 调整主元位置，划分左右子集
+    int pivot = A[end - 1];
+    int i = start, j = end - 1;
+    for (; ; ) {
+        while (A[++i] < pivot);
+        while (A[--j] > pivot);
+        if (i < j) {SWAP(A[i], A[j]);}
+        else break;
+    }
+    SWAP(A[i], A[end - 1]);     // 将主元换到正确的位置上
+    // 对左右子集分别递归调用快排
+    QSort(A, start, i - 1);
+    QSort(A, i + 1, end);
+}
+
+// 快速排序
+void Quick_Sort(ElementType A[], int N) {
+    QSort(A, 0, N - 1);
 }
