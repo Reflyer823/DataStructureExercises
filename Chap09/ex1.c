@@ -14,6 +14,7 @@ void Heap_Sort(ElementType A[], int N);
 void Merge_Sort1(ElementType A[], int N);
 void Merge_Sort2(ElementType A[], int N);
 void Quick_Sort(ElementType A[], int N);
+void LSDRadix_Sort(ElementType A[], int N);
 
 // 主函数
 int main() {
@@ -34,7 +35,8 @@ int main() {
     // Heap_Sort(A, N);
     // Merge_Sort1(A, N);
     // Merge_Sort2(A, N);
-    Quick_Sort(A, N);
+    // Quick_Sort(A, N);
+    LSDRadix_Sort(A, N);
 
     // 输出结果
     printf("%d", A[0]);
@@ -245,4 +247,94 @@ void QSort(ElementType A[], int start, int end) {
 // 快速排序
 void Quick_Sort(ElementType A[], int N) {
     QSort(A, 0, N - 1);
+}
+
+// 基数排序定义
+#define RADIX 10
+typedef struct LinkedListNode *LinkedList;
+struct LinkedListNode {
+    ElementType val;
+    LinkedList next;
+};
+struct LinkedListHead {
+    LinkedList head;
+    LinkedList tail;
+};
+typedef struct LinkedListHead Bucket[RADIX];
+
+// 基数排序——次位优先
+void LSDRadix_Sort(ElementType A[], int N) {
+    LinkedList L = NULL;
+    Bucket B;
+    // 创建并初始化每个桶
+    for (int i = 0; i < RADIX; i++)
+        B[i].head = B[i].tail = NULL;
+    // 将原序列依次从头部插入一个链表中
+    for (int i = 0; i < N; i++) {
+        LinkedList new = (LinkedList)malloc(sizeof(struct LinkedListNode));
+        new->val = A[i];
+        new->next = L;
+        L = new;
+    }
+    // 从最低位开始向高位，直到某一位全是0为止
+    char flag = 1;
+    LinkedList cur;
+    int r;
+    for (int d = 0; flag; d++) {
+        // 分配，遍历整个链表并将每个元素分配到对应的桶中去
+        flag = 0;
+        while (L) {
+            cur = L;
+            L = L->next;
+            cur->next = NULL;
+            // 注意此处不能先对r求绝对值，否则在处理INT_MIN时取反会溢出
+            r = cur->val;
+            for (int i = 0; i < d; i++)
+                r /= RADIX;
+            // 当有一个元素更高的一位不是零时，置位flag
+            if (r >= RADIX) flag = 1;
+            r %= RADIX;
+            // 对r取绝对值
+            r = r < 0 ? -r : r;
+            // 将cur这个节点插在第r个桶的末尾
+            if (B[r].tail) {
+                B[r].tail->next = cur;
+                B[r].tail = cur;
+            } else {
+                B[r].head = B[r].tail = cur;
+            }
+        }
+        // 收集，将每个桶内的元素按顺序合并为一个链表
+        for (int i = RADIX - 1; i >= 0; i--) {
+            // 跳过空的桶
+            if (!B[i].head) continue;
+            B[i].tail->next = L;
+            L = B[i].head;
+            B[i].head = B[i].tail = NULL;
+        }
+    }
+    // 将正负数进行分离
+    LinkedList last = NULL;
+    cur = L;
+    while (cur) {
+        // 当遇到位置不在第一个的负数时，将其移动到链表头上去
+        if (cur->val < 0 && last) {
+            last->next = cur->next;
+            cur->next = L;
+            L = cur;
+            cur = last->next;
+        // 否则直接跳转到下一个元素
+        } else {
+            last = cur;
+            cur = cur->next;
+        }
+    }
+    // 将链表中的元素放回数组中，并释放空间
+    int Ai = 0;
+    while (L) {
+        cur = L;
+        L = L->next;
+        A[Ai++] = cur->val;
+        free(cur);
+    }
 }
